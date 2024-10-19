@@ -25,6 +25,7 @@ public class Textures {
             if(!path.substring(0, 1).equals("/"))path = "/"+path;
             return ImageIO.read(Textures.class.getResource(path));
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("Image '"+path+"' does not exist");
         }
         return none;
@@ -108,5 +109,17 @@ public class Textures {
         ((Graphics2D)newimage.createGraphics()).drawImage(image, transform, null);
         
         return newimage;
+    }
+
+    public static BufferedImage[] loadAnimation(String path, int length){
+        return loadAnimation(path,length,".png");
+    }
+
+    public static BufferedImage[] loadAnimation(String path, int length, String end){
+        BufferedImage[] images = new BufferedImage[length];
+        for(int i = 0; i < length; i ++){
+            images[i] = loadImage(path+Calcs.fillInt(i)+end);
+        }
+        return images;
     }
 }
