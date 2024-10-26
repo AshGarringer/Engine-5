@@ -24,12 +24,6 @@ public abstract class Engine extends Canvas implements Runnable{
     public int state = 0;
     public boolean multi_state = true;
     
-    private float max_transition_in = 0;
-    private int state_transition_in = 0;
-    private float max_transition_out = 0;
-    private int state_transition_out = 0;
-    private int transition_state = 0;
-    
     public Window window;
     
     public void start(String name, int width, int height,boolean full){
@@ -101,7 +95,7 @@ public abstract class Engine extends Canvas implements Runnable{
     	window.update();
         BufferStrategy bs = this.getBufferStrategy();
         if (bs == null) {
-            this.createBufferStrategy(3);
+            this.createBufferStrategy(2);
             return;
         }
         graphics = bs.getDrawGraphics();

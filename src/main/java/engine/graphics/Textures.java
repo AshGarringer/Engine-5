@@ -122,4 +122,16 @@ public class Textures {
         }
         return images;
     }
+
+    public static OptimizedImage[] loadOptimizedAnimation(String path, int length){
+        return loadOptimizedAnimation(path,length,".png");
+    }
+
+    public static OptimizedImage[] loadOptimizedAnimation(String path, int length, String end){
+        OptimizedImage[] images = new OptimizedImage[length];
+        for(int i = 0; i < length; i ++){
+            images[i] = new OptimizedImage(loadImage(path+Calcs.fillInt(i)+end));
+        }
+        return images;
+    }
 }

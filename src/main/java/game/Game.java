@@ -1,15 +1,13 @@
 package game;
 
 import engine.framework.Engine;
-import engine.graphics.ImageAnimation;
 import engine.graphics.Textures;
+import engine.input.Keyboard;
 
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -21,7 +19,7 @@ public class Game extends Engine{
     public static int TILE_SIZE = 120;
     public static int PLAYER_SIZE = 200;
     public static Point SCREEN = new Point(1600,900);
-    BufferedImage image;
+    Graphics2D g2d;
 
     Ball ball1;
     Ball ball2;
@@ -30,17 +28,15 @@ public class Game extends Engine{
     float cameray = 0;
     Random random;
     BufferedImage tile1;
-    BufferedImage tile2;
-    ArrayList<Point> switching;
+    Keyboard keyboard;
 
     public Game(){
         random = new Random();
         ball1 = new Ball(random);
         ball2 = new Ball(random);
         tile1 = Textures.loadPng("tiles/tile1");
-        tile2 = Textures.loadPng("tiles/tile2");
-        switching = new ArrayList<>();
-        image = new BufferedImage(1,1,1);
+        keyboard = new Keyboard();
+        this.addKeyListener(keyboard);
         this.start("Fever Dream", 1200, 675, false);
     }
     
@@ -52,54 +48,76 @@ public class Game extends Engine{
 
     @Override
     public void render(Graphics g) {
-
-        if(image.getWidth() != window.getWidth() || image.getHeight() != window.getHeight())
-            image = new BufferedImage(window.getWidth(),window.getHeight(),1);
-        Graphics2D g2d = (Graphics2D)image.getGraphics();
+        
+        g2d = (Graphics2D)g;
 
         camerax += ((ball1.x + ball2.x)/2f-camerax)*0.05f;
         cameray += ((ball1.y + ball2.y)/2f-cameray)*0.05f;
 
-        Rectangle r = new Rectangle(Math.round(camerax - window.getWidth()/2*zoom)-TILE_SIZE,
-                Math.round(cameray - window.getHeight()/2*zoom)-TILE_SIZE,window.getWidth()+TILE_SIZE*2, window.getHeight()+TILE_SIZE*2);
-
         if(random.nextInt(40) == 0);
+        
+        switch(keyboard.clearPressed()){
+            case KeyEvent.VK_W:
+                ball1.y -= 50;
+                break;
+            case KeyEvent.VK_A:
+                ball1.x -= 50;
+                break;
+            case KeyEvent.VK_S:
+                ball1.y += 50;
+                break;
+            case KeyEvent.VK_D:
+                ball1.x += 50;
+                break;
+        }
 
+        // Multipling by zoom converts the window rectangle to the game rectangle
+        // Dividing by zoom converts the game rectangle to the window rectangle
         zoom += (Math.max(Math.max((Math.max(ball1.x,ball2.x) - Math.min(ball1.x,ball2.x) + PLAYER_SIZE)/window.getWidth(),
                             (Math.max(ball1.y,ball2.y) - Math.min(ball1.y,ball2.y) + PLAYER_SIZE)/window.getHeight()),
                             PLAYER_SIZE*4f/window.getWidth()) - zoom)*0.05f;
 
-        int numy = Math.round(r.height*zoom)/TILE_SIZE;
-        int numx = Math.round(r.width*zoom)/TILE_SIZE;
-
-        Point start = new Point(Math.abs((Math.round(camerax - (window.getWidth()/2)*zoom)-TILE_SIZE)%TILE_SIZE),
-                Math.abs(Math.round(cameray - (window.getHeight()/2)*zoom)-TILE_SIZE)%TILE_SIZE);
+        //game rectangle context
+        
+        float scWidth = window.getWidth()*zoom;
+        float scHeight = window.getHeight()*zoom;
+        float scPlayer = PLAYER_SIZE;
+        float scTile = TILE_SIZE;
+        
+        float startX = camerax - scWidth/2 - ((camerax - scWidth/2)%TILE_SIZE + TILE_SIZE)%TILE_SIZE;
+        float startY = cameray - scHeight/2 - ((cameray - scHeight/2)%TILE_SIZE + TILE_SIZE)%TILE_SIZE;
+        
+        System.out.println(camerax - scWidth/2);
+        
+        int numX = (int)(scWidth/TILE_SIZE) + 1;
+        int numY = (int)(scHeight/TILE_SIZE) + 1;
+        
+        //game rectangle context
 
         g2d.scale(1/zoom,1/zoom);
-        g2d.translate(window.getWidth()/2*zoom-camerax,window.getHeight()/2*zoom-cameray);
+        g2d.translate(scWidth/2-camerax,scHeight/2-cameray);
 
-        for(int x = 0; x < numx; x ++){
-            for(int y = 0; y < numy; y ++){
-                g2d.drawImage(tile1,r.x + start.x + TILE_SIZE*x,r.y + start.y + TILE_SIZE*y,TILE_SIZE,TILE_SIZE,null);
+        for(int x = 0; x < numX; x ++){
+            for(int y = 0; y < numY; y ++){
+                g.drawImage(tile1, (int)(startX + x*TILE_SIZE), (int)(startY + y*TILE_SIZE), TILE_SIZE, TILE_SIZE, this);
             }
         }
-
+        
         ball1.render(g2d);
         ball2.render(g2d);
-        g2d.dispose();
     }
 }
 class Ball{
 
     BufferedImage[] animation;
-    int frame= 0;
-    double rotation= 0;
-    int rotationIntent= 0;
-    float rotationMomentum= 0;
+    int frame = 0;
+    double rotation = 0;
+    int rotationIntent = 0;
+    float rotationMomentum = 0;
     float x = 0;
     float y = 0;
-    float xMomentum= 0;
-    float yMomentum= 0;
+    float xMomentum = 0;
+    float yMomentum = 0;
     boolean moving = false;
     double direction = 0;
     int timeSinceRotation = 0;
