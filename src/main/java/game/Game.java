@@ -1,6 +1,7 @@
 package game;
 
 import engine.framework.Engine;
+import engine.graphics.OptimizedImage;
 import engine.graphics.Textures;
 import engine.input.Keyboard;
 
@@ -19,7 +20,6 @@ public class Game extends Engine{
     public static int TILE_SIZE = 120;
     public static int PLAYER_SIZE = 200;
     public static Point SCREEN = new Point(1600,900);
-    Graphics2D g2d;
 
     Ball ball1;
     Ball ball2;
@@ -27,14 +27,14 @@ public class Game extends Engine{
     float camerax = 0;
     float cameray = 0;
     Random random;
-    BufferedImage tile1;
+    OptimizedImage tile1;
     Keyboard keyboard;
 
     public Game(){
         random = new Random();
         ball1 = new Ball(random);
         ball2 = new Ball(random);
-        tile1 = Textures.loadPng("tiles/tile1");
+        tile1 = new OptimizedImage(Textures.loadPng("tiles/tile1"));
         keyboard = new Keyboard();
         this.addKeyListener(keyboard);
         this.start("Fever Dream", 1200, 675, false);
@@ -47,9 +47,7 @@ public class Game extends Engine{
     }
 
     @Override
-    public void render(Graphics g) {
-        
-        g2d = (Graphics2D)g;
+    public void render(Graphics2D g) {
 
         camerax += ((ball1.x + ball2.x)/2f-camerax)*0.05f;
         cameray += ((ball1.y + ball2.y)/2f-cameray)*0.05f;
@@ -81,35 +79,31 @@ public class Game extends Engine{
         
         float scWidth = window.getWidth()*zoom;
         float scHeight = window.getHeight()*zoom;
-        float scPlayer = PLAYER_SIZE;
-        float scTile = TILE_SIZE;
         
         float startX = camerax - scWidth/2 - ((camerax - scWidth/2)%TILE_SIZE + TILE_SIZE)%TILE_SIZE;
         float startY = cameray - scHeight/2 - ((cameray - scHeight/2)%TILE_SIZE + TILE_SIZE)%TILE_SIZE;
         
-        System.out.println(camerax - scWidth/2);
-        
-        int numX = (int)(scWidth/TILE_SIZE) + 1;
-        int numY = (int)(scHeight/TILE_SIZE) + 1;
+        int numX = (int)(scWidth/TILE_SIZE) + 2;
+        int numY = (int)(scHeight/TILE_SIZE) + 2;
         
         //game rectangle context
 
-        g2d.scale(1/zoom,1/zoom);
-        g2d.translate(scWidth/2-camerax,scHeight/2-cameray);
+        g.scale(1/zoom,1/zoom);
+        g.translate(scWidth/2-camerax,scHeight/2-cameray);
 
         for(int x = 0; x < numX; x ++){
             for(int y = 0; y < numY; y ++){
-                g.drawImage(tile1, (int)(startX + x*TILE_SIZE), (int)(startY + y*TILE_SIZE), TILE_SIZE, TILE_SIZE, this);
+                tile1.drawImage((int)(startX + x*TILE_SIZE), (int)(startY + y*TILE_SIZE), TILE_SIZE+1, TILE_SIZE+1, g);
             }
         }
         
-        ball1.render(g2d);
-        ball2.render(g2d);
+        ball1.render(g);
+        ball2.render(g);
     }
 }
 class Ball{
 
-    BufferedImage[] animation;
+    OptimizedImage[] animation;
     int frame = 0;
     double rotation = 0;
     int rotationIntent = 0;
@@ -128,7 +122,7 @@ class Ball{
     public Ball(Random random){
         this.random = random;
 
-        animation = Textures.loadAnimation("complexBall/frame", 52);
+        animation = Textures.loadOptimizedAnimation("complexBall/frame", 52);
     }
 
     public void tick(float otherx, float othery){
@@ -178,11 +172,7 @@ class Ball{
     }
 
     public void render(Graphics2D g){
-        AffineTransform old = g.getTransform();
-        g.translate(Math.round(x),Math.round(y));
-        g.rotate(rotation);
-        g.drawImage(animation[frame/3],-Game.PLAYER_SIZE/2,-Game.PLAYER_SIZE/2,Game.PLAYER_SIZE,Game.PLAYER_SIZE, null);
-        g.setTransform(old);
+        animation[frame/3].drawRotated(Math.round(x), Math.round(y), Game.PLAYER_SIZE, Game.PLAYER_SIZE, rotation, g);
     }
 
     public double getRotation(double dist, double angle){

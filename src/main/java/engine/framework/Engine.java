@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 public abstract class Engine extends Canvas implements Runnable{
     
     Thread thread;
-    Graphics graphics;
+    Graphics2D graphics;
     
     public int state = 0;
     public boolean multi_state = true;
@@ -74,7 +74,7 @@ public abstract class Engine extends Canvas implements Runnable{
                 }
                 
                 if(tickTimer == 0) {
-                	System.out.println((sumTime/(float)tps)/time_per_tick);
+                    System.out.println(((sumTime/(float)tps)/time_per_tick)*100 + "%");
                     sumTime = 0;
                     tickTimer = 0;
                 }
@@ -98,7 +98,7 @@ public abstract class Engine extends Canvas implements Runnable{
             this.createBufferStrategy(2);
             return;
         }
-        graphics = bs.getDrawGraphics();
+        graphics = (Graphics2D)bs.getDrawGraphics();
         render(graphics);
         graphics.dispose();
         bs.show();
@@ -110,13 +110,12 @@ public abstract class Engine extends Canvas implements Runnable{
         
     }
     
-    public void render(Graphics g){
+    public void render(Graphics2D g){
         
     }
     
-    public void setTextHints(Graphics g){
-        Graphics2D g2d = (Graphics2D) g;
-        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    public void setTextHints(Graphics2D g){
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     }
 }
